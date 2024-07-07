@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiktokenizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .header h1 {
+            font-size: 2.25rem;
+            font-weight: bold;
+            margin: 0;
+        }
+        .content {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .input-area, .output-area {
+            width: 100%;
+        }
+        .input-area textarea, .output-area .token-count-box, .output-area .output-box {
+            margin-bottom: 1rem;
+        }
+        textarea {
+            width: 95%;
+            height: 256px;
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            background-color: transparent;
+            font-family: monospace;
+            font-size: 0.875rem;
+            resize: none;
+        }
+        .output-area {
+            display: flex;
+            flex-direction: column;
+        }
+        .token-count-box, .output-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            overflow: auto;
+        }
+        .token-count-label {
+            font-size: 0.875rem;
+        }
+        .token-count-value {
+            font-size: 1.125rem;
+        }
+        .output-box {
+            height: 256px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        .token-span {
+            display: inline;
+            padding: 2px 0;
+            margin: 0;
+            border-radius: 3px;
+        }
+        .encoded-token {
+            cursor: pointer;
+            padding: 2px 4px;
+            margin: 1px;
+            border-radius: 3px;
+        }
+        .highlighted {
+            outline: 2px solid black;
+        }
+        .tokenizer-select {
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            background-color: #ffffff;
+            font-size: 0.875rem;
+        }
+        @media (min-width: 768px) {
+            .content {
+                flex-direction: row;
+                flex-wrap: nowrap;
+            }
+            .input-area, .output-area {
+                flex: 1;
+                min-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Tiktokenizer</h1>
+        </header>
+        <div class="content">
+            <section class="input-area">
+                <textarea id="text" name="text" placeholder="Enter text here" oninput="tokenizeText()"></textarea>
+            </section>
+            <section class="output-area">
+                <select id="tokenizer-select" class="tokenizer-select" onchange="tokenizeText()">
+                    <option value="custom">Custom</option>
+                    <option value="gpt-4o">gpt-4o</option>
+                    <option value="gpt-3.5-Turbo">gpt-3.5-Turbo</option>
+                    <option value="gpt2">gpt2</option>
+                </select>
+                <div class="token-count-box">
+                    <p class="token-count-label">Token count</p>
+                    <p class="token-count-value" id="token-count">0</p>
+                </div>
+                <div class="output-box" id="tokens-box"></div>
+                <div class="output-box" id="encoded-tokens-box"></div>
+            </section>
+        </div>
+    </div>
+    <script>
+        function getRandomColor() {
+            const letters = '89ABCDEF'; // Use only the lighter range of colors
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * letters.length)];
+            }
+            return color;
+        }
+
+        async function tokenizeText() {
+            const text = document.getElementById('text').value;
+            const tokenizer = document.getElementById('tokenizer-select').value;
+            const response = await fetch('/tokenize', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: text, tokenizer: tokenizer })
+            });
+            const result = await response.json();
+            document.getElementById('token-count').innerText = result.token_count;
+            
+            // Display tokens with preserved formatting
+            const tokensBox = document.getElementById('tokens-box');
+            tokensBox.innerHTML = ''; // Clear previous content
+            
+            let currentPosition = 0;
+            for (let i = 0; i < result.tokens.length; i++) {
+                const token = result.tokens[i];
+                const span = document.createElement('span');
+                span.textContent = text.slice(currentPosition, currentPosition + token.length);
+                span.className = 'token-span';
+                span.style.backgroundColor = getRandomColor();
+                span.dataset.index = i;
+                tokensBox.appendChild(span);
+                currentPosition += token.length;
+            }
+
+            // Display encoded tokens with hover functionality
+            const encodedTokensBox = document.getElementById('encoded-tokens-box');
+            encodedTokensBox.innerHTML = ''; // Clear previous content
+            
+            result.encoded_tokens.forEach((token, index) => {
+                const span = document.createElement('span');
+                span.textContent = token;
+                span.className = 'encoded-token';
+                span.dataset.index = index;
+                span.addEventListener('mouseover', highlightToken);
+                span.addEventListener('mouseout', removeHighlight);
+                encodedTokensBox.appendChild(span);
+            });
+        }
+
+        function highlightToken(event) {
+            removeHighlight(); // Remove any existing highlight
+            const index = event.target.dataset.index;
+            const tokenSpan = document.querySelector(`.token-span[data-index="${index}"]`);
+            const encodedTokenSpan = document.querySelector(`.encoded-token[data-index="${index}"]`);
+            if (tokenSpan) tokenSpan.classList.add('highlighted');
+            if (encodedTokenSpan) encodedTokenSpan.classList.add('highlighted');
+        }
+
+        function removeHighlight() {
+            document.querySelectorAll('.highlighted').forEach(el => el.classList.remove('highlighted'));
+        }
+
+        // Initial tokenization
+        tokenizeText();
+    </script>
+</body>
+</html>

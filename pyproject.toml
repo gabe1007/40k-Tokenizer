@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "tokenizer"
+version = "0.1.0"
+description = ""
+authors = ["gabe1007 <gabriel1007@yahoo.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+regex = "^2024.5.15"
+numpy = "^2.0.0"
+flask = "^3.0.3"
+tiktoken = "^0.7.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
