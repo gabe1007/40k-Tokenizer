@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tiktokenizer</title>
     <style>
+        /* Basic styling for the body and main container */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -123,7 +124,7 @@
             </section>
             <section class="output-area">
                 <select id="tokenizer-select" class="tokenizer-select" onchange="tokenizeText()">
-                    <option value="custom">Custom</option>
+                    <option value="custom">40K-Tokenizer</option>
                     <option value="gpt-4o">gpt-4o</option>
                     <option value="gpt-3.5-Turbo">gpt-3.5-Turbo</option>
                     <option value="gpt2">gpt2</option>
@@ -138,6 +139,7 @@
         </div>
     </div>
     <script>
+        // Function to generate a random color
         function getRandomColor() {
             const letters = '89ABCDEF'; // Use only the lighter range of colors
             let color = '#';
@@ -147,6 +149,7 @@
             return color;
         }
 
+        // Function to tokenize text based on user input and selected tokenizer
         async function tokenizeText() {
             const text = document.getElementById('text').value;
             const tokenizer = document.getElementById('tokenizer-select').value;
@@ -191,6 +194,7 @@
             });
         }
 
+        // Function to highlight tokens on hover
         function highlightToken(event) {
             removeHighlight(); // Remove any existing highlight
             const index = event.target.dataset.index;
@@ -200,11 +204,12 @@
             if (encodedTokenSpan) encodedTokenSpan.classList.add('highlighted');
         }
 
+        // Function to remove highlight from tokens
         function removeHighlight() {
             document.querySelectorAll('.highlighted').forEach(el => el.classList.remove('highlighted'));
         }
 
-        // Initial tokenization
+        // Initial tokenization when the page loads
         tokenizeText();
     </script>
 </body>
