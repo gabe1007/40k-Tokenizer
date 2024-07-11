@@ -11,6 +11,7 @@ regex = "^2024.5.15"
 numpy = "^2.0.0"
 flask = "^3.0.3"
 tiktoken = "^0.7.0"
+gunicorn = "^22.0.0"
 
 
 [build-system]
