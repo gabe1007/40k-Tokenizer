@@ -8,9 +8,6 @@ def map_func(byte):
     """
     return Counter(zip(byte, byte[1:])) if len(byte) > 1 else Counter()
 
-from collections import Counter
-
-
 def get_pair_counts(byte_chunks):
     """
     Calculate the counts of pairs of bytes in the given byte chunks.
